@@ -6,8 +6,8 @@
     <title>오늘의 메시지</title>
     <style>
         body { 
-            background-color: #FFFFFF !important; /* 배경: 흰색 */
-            color: #333333 !important;           /* 기본 글씨: 짙은 차콜 */
+            background-color: #FFFFFF !important; 
+            color: #333333 !important; 
             font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
             display: flex; 
             justify-content: center; 
@@ -18,41 +18,35 @@
             box-sizing: border-box; 
         }
         .container { max-width: 500px; width: 100%; line-height: 1.6; }
-        .date-label { 
-            font-size: 0.9rem; 
-            color: #757575; /* 날짜: 중간 회색 */
-            margin-bottom: 8px; 
-            font-weight: 500; 
-        }
-        .content-block { 
-            margin-bottom: 50px; 
-            border-bottom: 1px solid #EEEEEE; /* 구분선: 아주 연한 회색 */
-            padding-bottom: 40px; 
-        }
+        .date-label { font-size: 0.9rem; color: #757575; margin-bottom: 8px; font-weight: 500; }
+        .content-block { margin-bottom: 50px; border-bottom: 1px solid #EEEEEE; padding-bottom: 40px; }
         .content-block:last-child { border-bottom: none; }
+        
+        /* 기본 제목 스타일 (효사) - 파란색 */
         .title { 
             font-size: 1.5rem; 
             font-weight: 700; 
             margin-bottom: 20px; 
             word-break: keep-all; 
-            color: #1565C0;          /* 제목: 딥 로얄 블루 */
-            border-left: 4px solid #1565C0; /* 테두리도 같은 파란색 */
+            color: #1565C0;          
+            border-left: 4px solid #1565C0; 
             padding-left: 15px; 
             line-height: 1.4;
         }
+
+        /* 괘사 전용 제목 스타일 - 보라색 */
+        .title.gwaesa {
+            color: #7B1FA2;          
+            border-left-color: #7B1FA2; 
+        }
+
         .description { 
             font-size: 1.1rem; 
-            color: #333333; /* 본문: 짙은 차콜 */
+            color: #333333; 
             white-space: pre-line; 
             line-height: 1.8; 
         }
-        .img-box { 
-            margin-top: 25px; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            margin-bottom: 25px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 그림자를 부드럽게 변경 */
-        }
+        .img-box { margin-top: 25px; border-radius: 12px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .img-box img { width: 100%; height: auto; display: block; }
     </style>
 </head>
@@ -85,15 +79,35 @@
                 for(let i=0; i < titles.length; i++) {
                     let t = titles[i] || "";
                     let d = descs[i] || descs[0] || "";
+                    
+                    // [기호 체크] 괘사인지 효사인지 확인
+                    let hasSymbol = t.match(/[≡☱☲☳☴☵☶☷]/);
+                    
+                    // 제목 클래스 결정 (기호 있으면 보라색, 없으면 파란색)
+                    let titleClass = hasSymbol ? "title gwaesa" : "title";
 
-                    // [중복 제거]
-                    if (t.trim() === d.trim()) { d = ""; }
-                    else if (d.trim().startsWith(t.trim())) { d = d.trim().substring(t.trim().length).trim(); }
+                    // [V17 강력 중복 제거]
+                    // 제목과 내용을 trim()해서 비교.
+                    // 제목이 내용의 맨 앞에 포함되어 있으면 잘라냄.
+                    if (d.trim().indexOf(t.trim()) === 0) {
+                        d = d.trim().substring(t.trim().length).trim();
+                    }
+                    
+                    // 혹시라도 줄바꿈이나 공백 때문에 안 지워질까봐 한번 더 체크
+                    // 제목에서 특수문자/공백 뺀 '알맹이'만 추출
+                    let coreTitle = t.replace(/[\s\.\:]/g, "");
+                    let coreDesc = d.replace(/[\s\.\:]/g, "");
+                    
+                    // 설명의 알맹이가 제목 알맹이로 시작하면? -> 이건 중복이다!
+                    // (단, 설명이 너무 짧아지면 안되니 원본 d를 조작할땐 주의)
+                    if (d.length > 0 && coreDesc.indexOf(coreTitle) === 0) {
+                         // 설명글 앞부분이 제목이랑 거의 같으면 제거 시도
+                         // (여기서는 안전하게 위쪽의 정확한 매칭만 우선 적용)
+                    }
 
                     // [이미지 찾기]
                     let imgHtml = "";
                     let fileNum = "없음";
-                    let hasSymbol = t.match(/[≡☱☲☳☴☵☶☷]/);
                     
                     if (!hasSymbol) {
                         let allText = t + " " + d;
@@ -113,7 +127,7 @@
 
                     html += `
                     <div class="content-block">
-                        <div class="title">${t}</div>
+                        <div class="${titleClass}">${t}</div>
                         ${imgHtml}
                         ${descHtml}
                     </div>
@@ -121,8 +135,7 @@
                 }
                 areaEl.innerHTML = html;
             } else {
-                // 기록 없을 때 메시지도 파란색으로 통일
-                areaEl.innerHTML = "<div class='title' style='color:#1565C0; border-color:#1565C0'>오늘의 기록이 없습니다.</div>";
+                areaEl.innerHTML = "<div class='title' style='color:#1565C0'>오늘의 기록이 없습니다.</div>";
             }
         }
         updateDailyContent();
