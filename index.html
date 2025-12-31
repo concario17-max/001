@@ -13,10 +13,12 @@
         .description { font-size: 1.1rem; color: #eeeeee; white-space: pre-line; line-height: 1.8; }
         .img-box { margin-top: 15px; border-radius: 8px; overflow: hidden; margin-bottom: 15px; }
         .img-box img { width: 100%; height: auto; display: block; }
+        .version-tag { color: #00c853; font-weight: bold; font-size: 0.8rem; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="version-tag">✅ V11 업데이트 완료</div>
         <div class="date-label" id="date-display"></div>
         <div id="content-area"></div>
     </div>
@@ -48,22 +50,25 @@
                     let imgHtml = "";
                     let fileNum = "없음";
 
-                    // [V10 강력 검색]
-                    // 1단계: 괘사 기호(≡)가 있으면 이미지 패스
+                    // [V11 최종 수정 로직]
+                    // 1. 괘사 기호 있으면 패스
                     let hasSymbol = t.match(/[≡☱☲☳☴☵☶☷]/);
                     
                     if (!hasSymbol) {
-                        // 2단계: 제목 맨 앞에서 숫자 찾기
-                        let numberMatch = t.match(/^(\d+)/);
+                        // 2. 제목이나 내용에서 "숫자." 또는 "숫자" 패턴 찾기
+                        // 줄바꿈이나 공백이 있어도 찾을 수 있게 (match) 사용
+                        let allText = t + " " + d;
                         
-                        // 3단계: 제목에 없으면 내용(desc)에서 숫자 찾기 (ex: "320. 九二...")
+                        // "숫자." 패턴을 우선 찾음 (예: 320.)
+                        let numberMatch = allText.match(/(\d+)\./); 
+                        
                         if (!numberMatch) {
-                            numberMatch = d.match(/^(\d+)/);
+                            // 점이 없으면 그냥 숫자라도 찾음
+                            numberMatch = allText.match(/(\d+)/);
                         }
 
                         if (numberMatch) {
                             fileNum = numberMatch[1];
-                            // gif -> GIF -> jpg -> png 순서로 찾기
                             imgHtml = `<div class="img-box">
                                 <img src="${fileNum}.gif" 
                                      onerror="this.src='${fileNum}.GIF'; this.onerror=function(){ this.src='${fileNum}.jpg'; this.onerror=function(){ this.src='${fileNum}.png'; this.onerror=function(){this.style.display='none';} } }"
